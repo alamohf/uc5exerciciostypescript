@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Exercícios TypeScript - Electron</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Exercícios TS</h2>
+    <button class="btn-ex" onclick="carregarExercico(1)">Exercício 1</button>
+    <button class="btn-ex" onclick="carregarExercico(2)">Exercício 2</button>
+    <button class="btn-ex" onclick="carregarExercico(3)">Exercício 3</button>
+    <button class="btn-ex" onclick="carregarExercico(4)">Exercício 4</button>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <h3 id="ex-titulo">Selecione um Exercício</h3>
+      <p id="ex-descricao">Clique em um dos botões para visualizar e executar.</p>
+    </div>
+
+    <div class="card">
+      <h3>Saída / Output (Console)</h3>
+      <div id="output" class="output-box">> Aguardando execução...</div>
+    </div>
+  </div>
+
+  <!-- Carrega o renderer compilado da pasta dist -->
+  <script src="./dist/renderer.js"></script>
+</body>
+</html>
