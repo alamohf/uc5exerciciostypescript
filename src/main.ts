@@ -16,14 +16,14 @@ function createWindow(): void {
   win.loadFile(path.join(__dirname, '../index.html'));
 }
 
-ipcMain.handle('executar-exercicio', (_event, numero: number) => {
+ipcMain.handle('executar-exercicio', async (_event, numero: number) => {
   const ex = mapaExercicios[numero];
   if (!ex) return { titulo: "Não encontrado", descricao: "", output: "Exercício inexistente." };
 
   return {
     titulo: ex.titulo,
     descricao: ex.descricao,
-    output: ex.executar()
+    output: await ex.executar()
   };
 });
 

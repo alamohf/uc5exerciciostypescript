@@ -14,7 +14,26 @@ export interface Produto {
 export interface ExercicoItem {
   titulo: string;
   descricao: string;
-  executar: () => string;
+  executar: () => string | Promise<string>;
+}
+
+// Exercício 3: apenas os campos que o formulário de cadastro envia (o id quem gera é o banco)
+export interface ProdutoCadastro {
+  nome: string;
+  preco: number;
+  quantidade: number;
+  idCategoria: number;
+}
+
+export interface ErrosProduto {
+  nome?: string;
+  preco?: string;
+  quantidade?: string;
+}
+
+export interface ResultadoValidacao {
+  valido: boolean;
+  erros: ErrosProduto;
 }
 
 // MOCK DE CATEGORIAS (Necessário para poder buscar por nome da categoria)
@@ -62,6 +81,41 @@ export function buscarProdutosPorTexto(
 }
 
 
+export function validarCadastroProduto(dados: ProdutoCadastro): ResultadoValidacao {
+  const erros: ErrosProduto = {};
+
+  if (!dados.nome || dados.nome.trim().length < 3) {
+    erros.nome = "O nome é obrigatório e deve ter no mínimo 3 caracteres.";
+  }
+
+  if (dados.preco <= 0) {
+    erros.preco = "O preço deve ser maior que zero.";
+  }
+
+  if (dados.quantidade < 0) {
+    erros.quantidade = "A quantidade não pode ser negativa.";
+  }
+
+  return {
+    valido: Object.keys(erros).length === 0,
+    erros
+  };
+}
+
+export function consultarProdutoBanco(id: number, lista: Produto[]): Promise<Produto> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const produto = lista.find((p) => p.id === id);
+
+      if (produto) {
+        resolve(produto);
+      } else {
+        reject(`Produto com ID ${id} não encontrado no banco de dados.`);
+      }
+    }, 1000);
+  });
+}
+
 export const mapaExercicios: Record<number, ExercicoItem> = {
   1: {
     titulo: "Exercício 1: Modelagem Relacional e Estoque",
@@ -88,13 +142,59 @@ export const mapaExercicios: Record<number, ExercicoItem> = {
     }
   },
   3: {
-    titulo: "Exercício 3",
-    descricao: "Aguardando enunciado...",
-    executar: () => "Exercício não implementado ainda."
+    titulo: "Exercício 3: Validação do Formulário de Cadastro",
+    descricao: "Valida os dados de um produto antes de enviá-los via IPC para o INSERT no banco.",
+    executar: () => {
+      const produtoValido: ProdutoCadastro = {
+        nome: "Headset Gamer",
+        preco: 199.9,
+        quantidade: 12,
+        idCategoria: 1
+      };
+
+      const produtoInvalido: ProdutoCadastro = {
+        nome: "Mo",
+        preco: 0,
+        quantidade: -5,
+        idCategoria: 1
+      };
+
+      const resultadoValido = validarCadastroProduto(produtoValido);
+      const resultadoInvalido = validarCadastroProduto(produtoInvalido);
+
+      console.log("Resultado produto válido:", resultadoValido);
+      console.log("Resultado produto inválido:", resultadoInvalido);
+
+      return [
+        `Produto válido -> valido: ${resultadoValido.valido}, erros: ${JSON.stringify(resultadoValido.erros)}`,
+        `Produto inválido -> valido: ${resultadoInvalido.valido}, erros: ${JSON.stringify(resultadoInvalido.erros)}`
+      ].join('\n');
+    }
   },
   4: {
-    titulo: "Exercício 4",
-    descricao: "Aguardando enunciado...",
-    executar: () => "Exercício não implementado ainda."
+    titulo: "Exercício 4: Simulação de Banco de Dados Assíncrono (Promises)",
+    descricao: "Consulta um produto simulando latência de banco de dados (1s) usando Promises e async/await.",
+    executar: async () => {
+      const linhas: string[] = [];
+
+      try {
+        const produtoEncontrado = await consultarProdutoBanco(1, produtosMock);
+        linhas.push(`Sucesso -> Produto encontrado: ${JSON.stringify(produtoEncontrado)}`);
+        console.log("Consulta bem-sucedida:", produtoEncontrado);
+      } catch (erro) {
+        linhas.push(`Falha inesperada: ${erro}`);
+        console.error(erro);
+      }
+
+      try {
+        const produtoInexistente = await consultarProdutoBanco(999, produtosMock);
+        linhas.push(`Sucesso inesperado: ${JSON.stringify(produtoInexistente)}`);
+      } catch (erro) {
+        linhas.push(`Falha -> ${erro}`);
+        console.error("Erro na consulta:", erro);
+      }
+
+      return linhas.join('\n');
+    }
   }
 };
